@@ -6,42 +6,37 @@ pipeline {
   }
   environment {
     APP_NAME = "customer"
-    ARTEFACT_ID = "kube-demo/" + "${env.APP_NAME}"
     VERSION = readFile('version').trim()
-    TAG = "${env.DOCKER_REGISTRY_URL}:5000/library/${env.ARTEFACT_ID}"
-    TAG_DEV = "${env.TAG}-${env.VERSION}-${env.BUILD_NUMBER}"
-    TAG_STAGING = "${env.TAG}-${env.VERSION}"
-  } 
+    DOCKER_REPO = "${env.DOCKER_REGISTRY_URL}/${env.APP_NAME}"
+    DEV_TAG = "${env.VERSION}-${env.BUILD_NUMBER}"
+    TAG = "${env.VERSION}"
+  }
   stages {
     stage('Maven build') {
       steps {
         checkout scm
         container('maven') {
-          sh 'mvn -B clean package'
+          sh 'unset MAVEN_CONFIG && env && ./mvnw clean package -Dmaven.test.skip=true'
         }
       }
     }
     stage('Docker build') {
-      when {
-        expression {
-          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
-        }
-      }
       steps {
         container('docker') {
-          sh "docker build -t ${env.TAG_DEV} ."
+          sh "docker build -t ${env.DOCKER_REPO} ."
+          sh "docker tag ${env.DOCKER_REPO} ${env.DOCKER_REPO}:${env.TAG}"
+          sh "docker tag ${env.DOCKER_REPO} ${env.DOCKER_REPO}:${env.DEV_TAG}"
         }
       }
     }
     stage('Docker push to registry'){
-      when {
-        expression {
-          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
-        }
-      }
       steps {
         container('docker') {
-          sh "docker push ${env.TAG_DEV}"
+          withCredentials([usernamePassword(credentialsId: 'acm-demo-app-cicd-user', passwordVariable: 'TOKEN', usernameVariable: 'USER')]) {
+            sh "docker login --username=${USER} --password=${TOKEN} https://${env.DOCKER_REGISTRY_URL}"
+            sh "docker push ${env.DOCKER_REPO}:${env.TAG}"
+            sh "docker push ${env.DOCKER_REPO}:${env.DEV_TAG}"
+          }
         }
       }
     }
