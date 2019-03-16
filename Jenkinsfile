@@ -7,7 +7,7 @@ pipeline {
   environment {
     APP_NAME = "customer"
     VERSION = readFile('version').trim()
-    DOCKER_REPO = "${env.DOCKER_REGISTRY_URL}/${env.APP_NAME}"
+    DOCKER_REPO = "${env.DOCKER_REGISTRY_URL}/acm-demo-app/${env.APP_NAME}"
     DEV_TAG = "${env.VERSION}-${env.BUILD_NUMBER}"
     TAG = "${env.VERSION}"
   }
@@ -32,7 +32,7 @@ pipeline {
     stage('Docker push to registry'){
       steps {
         container('docker') {
-          withCredentials([usernamePassword(credentialsId: 'acm-demo-app-cicd-user', passwordVariable: 'TOKEN', usernameVariable: 'USER')]) {
+          withCredentials([usernamePassword(credentialsId: 'registry-creds', passwordVariable: 'TOKEN', usernameVariable: 'USER')]) {
             sh "docker login --username=${USER} --password=${TOKEN} https://${env.DOCKER_REGISTRY_URL}"
             sh "docker push ${env.DOCKER_REPO}:${env.TAG}"
             sh "docker push ${env.DOCKER_REPO}:${env.DEV_TAG}"
