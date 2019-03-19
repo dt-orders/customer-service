@@ -5,10 +5,9 @@ pipeline {
     label 'maven'
   }
   environment {
-    APP_NAME = "customer"
+    APP_NAME = "customer-service"
     VERSION = readFile('version').trim()
-    DOCKER_REPO = "${env.DOCKER_REGISTRY_URL}/acm-demo-app/${env.APP_NAME}"
-    DEV_TAG = "${env.VERSION}-${env.BUILD_NUMBER}"
+    DOCKER_REPO = "${env.DOCKER_REGISTRY_URL}/${env.APP_NAME}"
     TAG = "${env.VERSION}"
   }
   stages {
@@ -25,17 +24,14 @@ pipeline {
         container('docker') {
           sh "docker build -t ${env.DOCKER_REPO} ."
           sh "docker tag ${env.DOCKER_REPO} ${env.DOCKER_REPO}:${env.TAG}"
-          sh "docker tag ${env.DOCKER_REPO} ${env.DOCKER_REPO}:${env.DEV_TAG}"
         }
       }
     }
     stage('Docker push to registry'){
       steps {
         container('docker') {
-          withCredentials([usernamePassword(credentialsId: 'registry-creds', passwordVariable: 'TOKEN', usernameVariable: 'USER')]) {
-            sh "docker login --username=${USER} --password=${TOKEN} https://${env.DOCKER_REGISTRY_URL}"
+          withDockerRegistry([ credentialsId: "registry-creds", url: "" ]) {
             sh "docker push ${env.DOCKER_REPO}:${env.TAG}"
-            sh "docker push ${env.DOCKER_REPO}:${env.DEV_TAG}"
           }
         }
       }
