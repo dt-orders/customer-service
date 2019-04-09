@@ -19,8 +19,7 @@ pipeline {
           sh 'unset MAVEN_CONFIG && env && ./mvnw clean package -Dmaven.test.skip=true'
         }
       }
-  }
-  stages {
+    }
     stage('Docker build') {
       steps {
         container('docker') {
