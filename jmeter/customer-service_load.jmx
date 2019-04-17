@@ -9,7 +9,7 @@
         <collectionProp name="Arguments.arguments">
           <elementProp name="SERVER_URL" elementType="Argument">
             <stringProp name="Argument.name">SERVER_URL</stringProp>
-            <stringProp name="Argument.value">carts.jx-staging.35.233.18.9.nip.io</stringProp>
+            <stringProp name="Argument.value">35.196.204.227</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="DefaultThinkTime" elementType="Argument">
@@ -108,7 +108,7 @@ hm.add(new org.apache.jmeter.protocol.http.control.Header(&quot;x-dynatrace-test
             <collectionProp name="Arguments.arguments"/>
           </elementProp>
           <stringProp name="HTTPSampler.domain">${__P(SERVER_URL,${SERVER_URL})}</stringProp>
-          <stringProp name="HTTPSampler.port">${__P(SERVER_PORT,${SERVER_PORT})}</stringProp>
+          <stringProp name="HTTPSampler.port">8080</stringProp>
           <stringProp name="HTTPSampler.protocol"></stringProp>
           <stringProp name="HTTPSampler.contentEncoding"></stringProp>
           <stringProp name="HTTPSampler.path">/</stringProp>
