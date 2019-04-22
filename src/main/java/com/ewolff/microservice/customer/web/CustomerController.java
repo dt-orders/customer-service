@@ -9,9 +9,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.ewolff.microservice.customer.Customer;
 import com.ewolff.microservice.customer.CustomerRepository;
+
+import java.io.*;
 
 @Controller
 public class CustomerController {
@@ -59,5 +62,20 @@ public class CustomerController {
 		customerRepository.deleteById(id);
 		return new ModelAndView("success");
 	}
+
+   @RequestMapping(value = "/version", method = RequestMethod.GET)
+   @ResponseBody
+   public String getVersion() {
+		File file = new File("version"); 
+		String version = "version not found";
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(file));
+			version = br.readLine();
+		}
+		catch(Exception e) {
+			version = e.getMessage();
+		}
+		return version;
+   }
 
 }
