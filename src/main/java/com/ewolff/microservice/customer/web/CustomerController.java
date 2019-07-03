@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.util.Calendar;
+import java.util.Date; 
+
 import com.ewolff.microservice.customer.Customer;
 import com.ewolff.microservice.customer.CustomerRepository;
 
@@ -76,6 +79,15 @@ public class CustomerController {
 			version = e.getMessage();
 		}
 		return version;
+   }
+
+   @RequestMapping(value = "/health", method = RequestMethod.GET)
+   @ResponseBody
+   public String getHealth() {
+
+	   Date dateNow = Calendar.getInstance().getTime();
+	   String health = "{ \"health\":[{\"service\":\"customer-service\",\"status\":\"OK\",\"date\":\"" + dateNow + "\" }]}";
+	   return health;
    }
 
 }

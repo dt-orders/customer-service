@@ -21,7 +21,29 @@ The following programs to be installed
 
 1. run these commands
   ```
-  ./mvnw clean package
+  ./mvnw clean package -Dmaven.test.skip=true
   java -jar target/*.jar
   ```
 2. access application at ```http://localhost:8080```
+
+# Utilities
+
+## 1. quicktest
+
+unix shell script that loops and calls the app URL.  Just call:
+
+```./quicktest.sh <customer base url>```
+
+For example:
+
+```./quicktest.sh http://localhost:8080```
+
+## 2. quickbuild
+
+unix shell script that builds and pushes docker image named: keptn-orders-customer-service:tag.  Just call:
+
+```./quickbuild.sh <registry> <tag>```
+
+For example:
+
+```./quickbuild.sh robjahn 1```
