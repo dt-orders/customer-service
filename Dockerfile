@@ -1,7 +1,5 @@
-FROM openjdk:11.0.8-jre-slim
-
+FROM openjdk:14
 COPY target/*.jar .
 COPY version .
-CMD java -Xmx600m -Xms600m -jar *.jar 
+CMD /usr/bin/java -Xmx400m -Xms400m -jar *.jar 
 EXPOSE 8080
-
