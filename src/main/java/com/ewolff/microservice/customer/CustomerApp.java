@@ -71,10 +71,11 @@ public class CustomerApp {
 	        			JSONObject name = (JSONObject) user.get("name");
 	        			String fName = ((String)name.get("first"));
 	        			String lName = ((String)name.get("last"));
-	        			JSONObject address = (JSONObject) user.get("location");
-	        			//System.out.println(fName + " " +lName + " " + fName + "." + lName + "@gmail.com" + " " + ((String) address.get("street")) + " " + ((String) address.get("city")));
-	        			customerRepository.save(new Customer(fName, lName,
-	        					"aa@gmail.com", ((String) address.get("street")),((String) address.get("city"))));
+						JSONObject address = (JSONObject) user.get("location");
+						String street = address.get("street").toString();
+						String city = address.get("city").toString();
+	        			System.out.println(fName + " " +lName + " " + fName + "." + lName + "@gmail.com" + " " + street + " " + city);
+						customerRepository.save(new Customer(fName, lName,"aa@gmail.com", street, city));
 	        		}
 	        	}
         }
