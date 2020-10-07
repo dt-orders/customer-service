@@ -1,6 +1,5 @@
 FROM openjdk:14
 COPY target/*.jar .
-COPY version .
 
 # used to set the problem pattern
 ARG APP_VERSION=1
