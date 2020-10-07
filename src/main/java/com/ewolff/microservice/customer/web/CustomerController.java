@@ -1,5 +1,7 @@
 package com.ewolff.microservice.customer.web;
 
+import java.lang.reflect.Field;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.Calendar;
 import java.util.Date; 
+import java.util.Map;
 
 import com.ewolff.microservice.customer.Customer;
 import com.ewolff.microservice.customer.CustomerRepository;
@@ -37,8 +40,29 @@ public class CustomerController {
 
 	@RequestMapping("/list.html")
 	public ModelAndView customerList() {
-		return new ModelAndView("customerlist", "customers",
-				customerRepository.findAll());
+
+		System.out.println("APP_VERSION: " + System.getenv("APP_VERSION"));
+		if (System.getenv("APP_VERSION").equals("2")) {
+			System.out.println("Response Time problem = ON");
+			try
+			{
+				// ************************************************
+				// Response Time problem
+				// ************************************************
+				Thread.sleep(5000);
+			}
+			catch(InterruptedException ex)
+			{
+			   Thread.currentThread().interrupt();
+			}
+			return new ModelAndView("customerlist", "customers",
+					customerRepository.findAll());
+		}
+		else {
+			System.out.println("Response Time problem = OFF");
+			return new ModelAndView("customerlist", "customers",
+					customerRepository.findAll());
+		}
 	}
 
 	@RequestMapping(value = "/form.html", method = RequestMethod.GET)
@@ -69,14 +93,12 @@ public class CustomerController {
    @RequestMapping(value = "/version", method = RequestMethod.GET)
    @ResponseBody
    public String getVersion() {
-		File file = new File("version"); 
-		String version = "version not found";
+		String version;
 		try {
-			BufferedReader br = new BufferedReader(new FileReader(file));
-			version = br.readLine();
+			version = System.getenv("APP_VERSION");
 		}
 		catch(Exception e) {
-			version = e.getMessage();
+			version = "APP_VERSION not found";
 		}
 		return version;
    }
