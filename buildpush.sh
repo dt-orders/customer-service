@@ -1,14 +1,16 @@
 #!/bin/bash
 
-GITHUB_ACCOUNT=$1
-IMAGE=$GITHUB_ACCOUNT/keptn-orders-customer-service
-
 clear
-if [ $# -lt 1 ]
+
+REPOSITORY=$1
+
+if [ -z "$REPOSITORY" ]
 then
-  echo "missing arguments. Expect ./buildpush.sh <registry>"
-  exit 1
+    REPOSITORY=dtdemos
 fi
+
+GITHUB_ACCOUNT=$1
+IMAGE=$REPOSITORY/dt-orders-customer-service
 
 #./mvnw clean package
 ./mvnw clean package -Dmaven.test.skip=true
