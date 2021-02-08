@@ -1,8 +1,15 @@
 package com.ewolff.microservice.customer.web;
 
-import java.lang.reflect.Field;
+import java.util.Calendar;
+import java.util.Date;
+import java.io.*;
 
 import javax.servlet.http.HttpServletRequest;
+
+import com.ewolff.microservice.customer.Customer;
+import com.ewolff.microservice.customer.CustomerRepository;
+import com.launchdarkly.sdk.LDUser;
+import com.launchdarkly.sdk.server.LDClient;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -10,23 +17,19 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.bind.annotation.ResponseBody;
-
-import java.util.Calendar;
-import java.util.Date; 
-import java.util.Map;
-
-import com.ewolff.microservice.customer.Customer;
-import com.ewolff.microservice.customer.CustomerRepository;
-
-import java.io.*;
+import org.springframework.web.servlet.ModelAndView;
 
 @Controller
 public class CustomerController {
 
 	private CustomerRepository customerRepository;
 	private String version;
+	private LDClient ldClient;
+	private String launchDarklySdkKey = "";
+
+	static final String LAUNCH_DARKLY_ENHANCED_CUSTOMER_LIST_FLAG_KEY = "enhanced-customer-list";
+	private boolean launchDarklyEnhancedCustomerListFlag = false;
 
 	private String getVersion() {
 		System.out.println("Current APP_VERSION: " + this.version);
@@ -38,11 +41,75 @@ public class CustomerController {
 		System.out.println("Setting APP_VERSION to: " + this.version);
 	}
 
+	private void showLaunchDarklyFlags(LDClient ldClient, LDUser user){
+		System.out.println("==========================================");
+		System.out.println("showLaunchDarklyFlags");
+		System.out.println("==========================================");
+		
+		launchDarklyEnhancedCustomerListFlag = ldClient.boolVariation(LAUNCH_DARKLY_ENHANCED_CUSTOMER_LIST_FLAG_KEY, user, false);
+		System.out.printf("launchDarklyEnhancedCustomerListFlag : \"%s\"\n", launchDarklyEnhancedCustomerListFlag);
+	}
+
+	private void logWheneverAnyFlagChanges(LDClient ldClient, LDUser user) {
+
+		ldClient.getFlagTracker().addFlagChangeListener(event -> {
+			String ldKey = event.getKey();
+			System.out.println("==========================================");
+			System.out.printf("LaunchDarkly Flag \"%s\" has changed\n", ldKey);
+			System.out.println("==========================================");
+
+			launchDarklyEnhancedCustomerListFlag = ldClient.boolVariation(ldKey, user, false);
+
+			this.showLaunchDarklyFlags(ldClient, user);
+		});
+	}
+
 	@Autowired
 	public CustomerController(CustomerRepository customerRepository) {
 		this.customerRepository = customerRepository;
 		this.version = System.getenv("APP_VERSION");
+		this.launchDarklySdkKey = System.getenv("LAUNCH_DARKLY_SDK_KEY");
+
+		ldClient = new LDClient(launchDarklySdkKey);
+		LDUser user = new LDUser.Builder("aa0ceb")
+			.anonymous(true)
+			.build();
+
+		logWheneverAnyFlagChanges(ldClient, user);
+		this.showLaunchDarklyFlags(ldClient, user);
+
+		// TODO: do I need to add this somewhere?
+		//ldClient.close();
 	}
+
+	@RequestMapping(value = "/manifest", method = RequestMethod.GET)
+	@ResponseBody
+	public String getManifest() {
+		 File file = new File("/MANIFEST"); 
+		 String manifest = "MANIFEST file not found";
+		 try {
+			 BufferedReader br = new BufferedReader(new FileReader(file));
+			 String line = br.readLine();
+			 manifest = line + "<BR>";
+			 while ((line = br.readLine()) != null) {
+				manifest = manifest + line + "<BR>";
+			 }
+			 br.close();
+		 }
+		 catch(Exception e) {
+			manifest = e.getMessage();
+		 }
+		 return manifest;
+	}
+
+	@RequestMapping(value = "/showflags", method = RequestMethod.GET)
+	@ResponseBody
+	public String showFlags() {
+		 String response;
+		 response = "<b>LaunchDarkly Flags</b><BR>";
+		 response += "launchDarklyEnhancedCustomerListFlag : " + launchDarklyEnhancedCustomerListFlag;
+		 return response;
+	} 
 
 	@RequestMapping(value = "/{id}.html", method = RequestMethod.GET, produces = MediaType.TEXT_HTML_VALUE)
 	public ModelAndView customer(@PathVariable("id") long id) {
@@ -53,7 +120,7 @@ public class CustomerController {
 	@RequestMapping("/list.html")
 	public ModelAndView customerList() {
 
-		if (this.getVersion().equals("2")) {
+		if ((this.getVersion().equals("2") || launchDarklyEnhancedCustomerListFlag)) {
 			System.out.println("Response Time problem = ON");
 			try
 			{
