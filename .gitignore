@@ -17,4 +17,5 @@ buildNumber.properties
 .mvn/timing.properties
 *.class
 .settings
-NOTES
+creds.json
+launchdarkly-demo-notes.txt
