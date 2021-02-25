@@ -12,9 +12,9 @@ The intent of this demo is to have these 3 versions of the application.
 
 # LaunchDarkly
 
-This application has also been build with the [LaunchDarkly Java SDK](https://docs.launchdarkly.com/sdk/server-side/java).  A flag called `enhanced-customer-list` has beed configured so that the value `ON` will enable the same High Response time as enabled in version 2. 
+This application has also been build with the [LaunchDarkly Java SDK](https://docs.launchdarkly.com/sdk/server-side/java).   This is to demo "in-place" changes to appliation.
 
-If you don't need LaunchDarkly, then there is no impact - it will only be enabled if you setup the LaunchDarkly KEY as described below in the `Run Docker Image` section.  
+If you don't need LaunchDarkly, then there is no impact - it will only be enabled if you setup the LaunchDarkly KEY set as a Docker environment variable. See `Run Docker Image` section below.  
 
 Be sure to setup the LaunchDarkly Dynatrace integration](https://docs.launchdarkly.com/integrations/dynatrace) as well to get LaunchDarkly changes pushed to Dynatrace.
 
@@ -23,16 +23,17 @@ Be sure to setup the LaunchDarkly Dynatrace integration](https://docs.launchdark
 The images for this service has been build and published to Dockerhub.
 
 1. Here is an example of running version 2
+
   ```
   docker run -p 8080:8080 dtdemos/dt-orders-customer-service:2
   ```
 
 1. Here is an example of running version 1 with LaunchDarkly enabled
 
-```
-export LAUNCH_DARKLY_SDK_KEY=<YOUR KEY>
-docker run -p 8080:8080 dtdemos/dt-orders-customer-service:2
-```
+  ```
+  export LAUNCH_DARKLY_SDK_KEY=<YOUR KEY>
+  docker run -p 8080:8080 --env LAUNCH_DARKLY_SDK_KEY=$LAUNCH_DARKLY_SDK_KEY dtdemos/dt-orders-customer-service:2
+  ```
 
 2. access application at ```http://localhost:8080```
 
@@ -47,7 +48,6 @@ docker run -p 8080:8080 dtdemos/dt-orders-customer-service:2
 | list.html | GET | list of customers |
 | manifest | GET | show the DOCKER image manifest file |
 | setversion/# | GET | set the version e.g. /setversion/1  /setversion/2 |
-| showflags | GET | show settings for feature flags |
 | version | GET | show the version |
 
 # Developer Notes
@@ -61,18 +61,18 @@ The following programs to be installed
 
 ## Build and Run Locally
 
-1. Use the provided Unix shell scipt that will build one docker image and run it
+1. Use the provided Unix shell scipt that will build one docker image and run it.  Optionally pass in the dockerhub repo name and version to run.
 
-    Just call: `./buildrun.sh <REPOSITORY> <VERSION>`
+    Just call: `./buildrun.sh`
 
-    For example, build and run version 1: `./buildrun.sh dtdemos 1`
+    For example, build and run version 1: `./buildrun.sh`
 
 2. access application at ```http://localhost:8080```
 
 ## Build Docker Images and push images to a repository
 
-Use the provided Unix shell scipt that will build the docker image and publish it. There are three versions that will be built.
+Use the provided Unix shell scipt that will build the docker image and publish it. There are three versions that will be built.  Optionally pass in the dockerhub repo name.
 
-    Just call: `./buildpush.sh <REPOSITORY>`
+Just call: `./buildpush.sh`
 
-    For example: `./buildpush.sh dtdemos`
+For example: `./buildpush.sh`

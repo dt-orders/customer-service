@@ -13,14 +13,16 @@ then
     VERSION_TAG=1
 fi
 
+LAUNCH_DARKLY_SDK_KEY=$(cat creds.json | jq -r '.launch_darkly_sdk_key')
+
 if [ -z "$LAUNCH_DARKLY_SDK_KEY" ]
 then
-    echo "Running with NO LAUNCH_DARKLY_SDK_KEY.  Set this variable as an environment variable if requrired."
+    echo "Running with NO LAUNCH_DARKLY_SDK_KEY.  If you want it, then set in your creds.json file."
 else
     echo "Running with LAUNCH_DARKLY_SDK_KEY = $LAUNCH_DARKLY_SDK_KEY"
 fi
 
-IMAGE=dt-orders-customer-service
+IMAGE=dt-orders-customer-service-ld
 FULLIMAGE=$REPOSITORY/$IMAGE:$VERSION_TAG
 
 echo "Compiling Java"
@@ -48,3 +50,11 @@ echo ""
 docker run -it -p 8080:8080 \
     --env LAUNCH_DARKLY_SDK_KEY=$LAUNCH_DARKLY_SDK_KEY \
     $FULLIMAGE
+
+echo ""
+echo "=============================================================="
+echo "Ready to push $FULLIMAGE"
+echo "=============================================================="
+read -rsp "Press ctrl-c to abort. Press any key to continue"
+
+docker push $FULLIMAGE
