@@ -130,7 +130,8 @@ public class CustomerController {
 				// ************************************************
 				// Response Time problem
 				// ************************************************
-				Thread.sleep(5000);
+				Integer sleepTime = Integer.valueOf(System.getenv("SLEEP_TIME"));
+				Thread.sleep(sleepTime);
 			}
 			catch(InterruptedException ex)
 			{
