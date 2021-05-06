@@ -36,7 +36,7 @@ echo "=============================================================="
 read -rsp "Press ctrl-c to abort. Press any key to continue"
 echo ""
 echo "Building: $FULLIMAGE"
-docker build -t $FULLIMAGE .
+docker build -t $FULLIMAGE . --build-arg APP_VERSION=$VERSION_TAG
 
 echo ""
 echo "=============================================================="
