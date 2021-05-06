@@ -81,6 +81,15 @@ public class CustomerController {
 		});
 	}
 
+	private void slowMeDown() throws InterruptedException {
+		System.out.println("Doing a fake slowdown");
+		// ************************************************
+		// Response Time problem
+		// ************************************************
+		Integer sleepTime = Integer.valueOf(System.getenv("SLEEP_TIME"));
+		Thread.sleep(sleepTime);
+	}
+
 	@Autowired
 	public CustomerController(CustomerRepository customerRepository) {
 		this.customerRepository = customerRepository;
@@ -116,7 +125,11 @@ public class CustomerController {
 	}
 
 	@RequestMapping(value = "/{id}.html", method = RequestMethod.GET, produces = MediaType.TEXT_HTML_VALUE)
-	public ModelAndView customer(@PathVariable("id") long id) {
+	public ModelAndView customer(@PathVariable("id") long id) throws Exception {
+
+		if (this.getVersion().equals("3")) {
+			this.slowMeDown();
+		}
 		return new ModelAndView("customer", "customer", customerRepository.findById(id).get());
 	}
 
@@ -127,11 +140,7 @@ public class CustomerController {
 		if (responseTimeProblemEnabled) {
 			try
 			{
-				// ************************************************
-				// Response Time problem
-				// ************************************************
-				Integer sleepTime = Integer.valueOf(System.getenv("SLEEP_TIME"));
-				Thread.sleep(sleepTime);
+				slowMeDown();
 			}
 			catch(InterruptedException ex)
 			{
@@ -166,13 +175,13 @@ public class CustomerController {
 			this.logWheneverAnyFlagChanges(ldClient, ldUser);
 		}
 
-		// call a seperate function so we can profile easier
+		// call a separate function so we can profile easier
 		if (launchDarklyNiceToHaveFeature1Flag) {
 			niceToHaveFeature1();
 		}
 
-		// call a seperate function so we can profile easier
-		if ((this.version.equals("2") || launchDarklyNewFeature1Flag)) {
+		// call a separate function so we can profile easier
+		if ((this.version.equals("2") || this.version.equals("3") || launchDarklyNewFeature1Flag)) {
 			return getCustomerList(true);
 		}
 		else {
@@ -181,7 +190,10 @@ public class CustomerController {
 	}
 
 	@RequestMapping(value = "/form.html", method = RequestMethod.GET)
-	public ModelAndView add() {
+	public ModelAndView add() throws InterruptedException {
+		if (this.getVersion().equals("3")) {
+			this.slowMeDown();
+		}
 		return new ModelAndView("customer", "customer", new Customer());
 	}
 
@@ -193,14 +205,23 @@ public class CustomerController {
 
 	@RequestMapping(value = "/{id}.html", method = RequestMethod.PUT)
 	public ModelAndView put(@PathVariable("id") long id, Customer customer,
-			HttpServletRequest httpRequest) {
+			HttpServletRequest httpRequest) throws InterruptedException {
+
+		if (this.getVersion().equals("3")) {
+			this.slowMeDown();
+		}
 		customer.setId(id);
 		customerRepository.save(customer);
 		return new ModelAndView("success");
 	}
 
 	@RequestMapping(value = "/{id}.html", method = RequestMethod.DELETE)
-	public ModelAndView delete(@PathVariable("id") long id) {
+	public ModelAndView delete(@PathVariable("id") long id) throws InterruptedException {
+
+		if (this.getVersion().equals("3")) {
+			this.slowMeDown();
+		}
+		
 		customerRepository.deleteById(id);
 		return new ModelAndView("success");
 	}

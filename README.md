@@ -1,22 +1,14 @@
 # Overview
 
-This repo has the code for the customer service for demostrations.  See the [overview](https://github.com/dt-orders/overview) repo for an overiew for that whole application.
+This repo has the code for the customer service for demonstrations.  See the [overview](https://github.com/dt-orders/overview) repo for an overview for that whole application.
 
-The intent of this demo is to have these 3 versions of the application.
+The intent of this demo is to have versions of the application with normal and builtin problems that are controlled by the version number.
 
-| Service  | Branch/Docker Tag | Description |
+| Service  | Version/Docker Tag | Description |
 |---|:---:|---|
 | customer-service | 1 | Normal behavior |
 | customer-service | 2 | High Response time for /customer/list.html |
-| customer-service | 3 | Normal behavior |
-
-# LaunchDarkly
-
-This application has also been build with the [LaunchDarkly Java SDK](https://docs.launchdarkly.com/sdk/server-side/java).   This is to demo "in-place" changes to appliation.
-
-If you don't need LaunchDarkly, then there is no impact - it will only be enabled if you setup the LaunchDarkly KEY set as a Docker environment variable. See `Run Docker Image` section below.  
-
-Be sure to setup the LaunchDarkly Dynatrace integration](https://docs.launchdarkly.com/integrations/dynatrace) as well to get LaunchDarkly changes pushed to Dynatrace.
+| customer-service | 3 | High Response time for all requests |
 
 # Run Docker Image
 
@@ -55,13 +47,13 @@ The images for this service has been build and published to Dockerhub.
 ## Pre-requisites
 
 The following programs to be installed
-* Java 14
+* Java 15
 * Maven
 * Docker
 
 ## Build and Run Locally
 
-1. Use the provided Unix shell scipt that will build one docker image and run it.  Optionally pass in the dockerhub repo name and version to run.
+1. Use the provided Unix shell script that will build one docker image and run it.  Optionally pass in the dockerhub repo name and version to run.
 
     Just call: `./buildrun.sh`
 
@@ -71,8 +63,16 @@ The following programs to be installed
 
 ## Build Docker Images and push images to a repository
 
-Use the provided Unix shell scipt that will build the docker image and publish it. There are three versions that will be built.  Optionally pass in the dockerhub repo name.
+Use the provided Unix shell script that will build the docker image and publish it. There are three versions that will be built.  Optionally pass in the dockerhub repo name.
 
 Just call: `./buildpush.sh`
 
 For example: `./buildpush.sh`
+
+# LaunchDarkly Feature Flags
+
+This application has also been build with the [LaunchDarkly Java SDK](https://docs.launchdarkly.com/sdk/server-side/java).   This is to demo "in-place" changes to application.
+
+If you don't need LaunchDarkly, then there is no impact - it will only be enabled if you setup the LaunchDarkly KEY set as a Docker environment variable. See `Run Docker Image` section below.  
+
+Be sure to setup the LaunchDarkly Dynatrace integration](https://docs.launchdarkly.com/integrations/dynatrace) as well to get LaunchDarkly changes pushed to Dynatrace.
