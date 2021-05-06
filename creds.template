@@ -1,0 +1,4 @@
+{
+    "launch_darkly_api_token":"YOUR_API_TOKEN",
+    "launch_darkly_sdk_key":"YOUR_SDK_KEY"
+}

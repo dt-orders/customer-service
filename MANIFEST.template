@@ -1,0 +1,6 @@
+##########
+timestamp: MANIFEST_DATE
+repository: MANIFEST_GIT_REMOTE_ORIGIN_URL
+branch: MANIFEST_GIT_BRANCH
+commit: MANIFEST_GIT_COMMIT_SHORT
+##########
