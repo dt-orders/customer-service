@@ -98,8 +98,8 @@ public class CustomerController {
 		// setup LaunchDarkly client if the key is set
 		this.launchDarklySdkKey = System.getenv("LAUNCH_DARKLY_SDK_KEY");
 
-		if (this.launchDarklySdkKey != "") {
-			System.out.println("Found LAUNCH_DARKLY_SDK_KEY, setting up LDClient");
+		if (this.launchDarklySdkKey.length()> 0) {
+			System.out.println("Found LAUNCH_DARKLY_SDK_KEY: " + this.launchDarklySdkKey + " setting up LDClient");
 			ldClient = new LDClient(launchDarklySdkKey);
 		}
 	}
@@ -159,7 +159,7 @@ public class CustomerController {
 	public ModelAndView customerList(@RequestHeader(value = "x-test-user", required = false) String user) {
 
 		// only do this logic if using launchDarkly
-		if (this.launchDarklySdkKey != "") {
+		if (this.launchDarklySdkKey.length()> 0) {
 
 			Random rand = new Random();
 			String randomUserId = Integer.toString(rand.nextInt(1000000) + 1);
