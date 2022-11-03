@@ -46,12 +46,13 @@ public class CustomerController {
 		this.version = newVersion;
 		System.out.println("Setting APP_VERSION to: " + this.version);
 	}
-
-	private void niceToHaveFeature1() {
+	private void niceToHaveFeature1(boolean failureProblemEnabled) {
 		System.out.println("Running niceToHaveFeature1");
-		throw new ResponseStatusException(
-			HttpStatus.SERVICE_UNAVAILABLE, "niceToHaveFeature1 returning service unavailable."
-		);
+		if (failureProblemEnabled) {
+			throw new ResponseStatusException(
+				HttpStatus.SERVICE_UNAVAILABLE, "niceToHaveFeature1 returning service unavailable."
+			);
+		}
 	}
 
 	private void showLaunchDarklyFlags(LDClient ldClient, LDUser user){
@@ -176,9 +177,7 @@ public class CustomerController {
 		}
 
 		// call a separate function so we can profile easier
-		if (launchDarklyNiceToHaveFeature1Flag) {
-			niceToHaveFeature1();
-		}
+		niceToHaveFeature1(launchDarklyNiceToHaveFeature1Flag);
 
 		// call a separate function so we can profile easier
 		if ((this.version.equals("2") || this.version.equals("3") || launchDarklyNewFeature1Flag)) {
