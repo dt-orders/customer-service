@@ -4,6 +4,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Random;
 import java.io.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -27,6 +29,7 @@ import org.springframework.http.HttpStatus;
 @Controller
 public class CustomerController {
 
+	private static final Logger logger = LoggerFactory.getLogger(CustomerController.class);
 	private CustomerRepository customerRepository;
 	private String version;
 	private LDClient ldClient;
@@ -38,16 +41,17 @@ public class CustomerController {
 	private boolean launchDarklyNiceToHaveFeature1Flag = false;
 
 	private String getVersion() {
-		System.out.println("Current APP_VERSION: " + this.version);
+		logger.info("INFO Current APP_VERSION: " + this.version);
+		logger.warn("WARN Current APP_VERSION: " + this.version);
 		return this.version;
 	}
 
 	private void setVersion(String newVersion) {
 		this.version = newVersion;
-		System.out.println("Setting APP_VERSION to: " + this.version);
+		logger.info("Setting APP_VERSION to: " + this.version);
 	}
 	private void niceToHaveFeature1(boolean failureProblemEnabled) {
-		System.out.println("Running niceToHaveFeature1");
+		logger.info("Running niceToHaveFeature1");
 		if (failureProblemEnabled) {
 			throw new ResponseStatusException(
 				HttpStatus.SERVICE_UNAVAILABLE, "niceToHaveFeature1 returning service unavailable."
@@ -56,20 +60,20 @@ public class CustomerController {
 	}
 
 	private void showLaunchDarklyFlags(LDClient ldClient, LDUser user){
-		System.out.println("==========================================");
-		System.out.println("showLaunchDarklyFlags");
-		System.out.println("==========================================");
-		System.out.printf("launchDarklyNewFeature1Flag : \"%s\"\n", launchDarklyNewFeature1Flag);
-		System.out.printf("launchDarklyNiceToHaveFeature1Flag : \"%s\"\n", launchDarklyNiceToHaveFeature1Flag);
+		logger.info("==========================================");
+		logger.info("showLaunchDarklyFlags");
+		logger.info("==========================================");
+		logger.info("launchDarklyNewFeature1Flag : \"%s\"\n", launchDarklyNewFeature1Flag);
+		logger.info("launchDarklyNiceToHaveFeature1Flag : \"%s\"\n", launchDarklyNiceToHaveFeature1Flag);
 	}
 
 	private void logWheneverAnyFlagChanges(LDClient ldClient, LDUser user) {
 
 		ldClient.getFlagTracker().addFlagChangeListener(event -> {
 			String ldKey = event.getKey();
-			System.out.println("==========================================");
-			System.out.printf("LaunchDarkly Flag \"%s\" has changed\n", ldKey);
-			System.out.println("==========================================");
+			logger.info("==========================================");
+			logger.info("LaunchDarkly Flag \"%s\" has changed\n", ldKey);
+			logger.info("==========================================");
 
 			if (ldKey == LAUNCH_DARKLY_NEW_FEATURE_1_FLAG_KEY) {
 				launchDarklyNewFeature1Flag = ldClient.boolVariation(ldKey, user, false);
@@ -83,7 +87,7 @@ public class CustomerController {
 	}
 
 	private void slowMeDown() throws InterruptedException {
-		System.out.println("Doing a fake slowdown");
+		logger.info("Doing a fake slowdown");
 		// ************************************************
 		// Response Time problem
 		// ************************************************
@@ -100,7 +104,7 @@ public class CustomerController {
 		this.launchDarklySdkKey = System.getenv("LAUNCH_DARKLY_SDK_KEY");
 
 		if (this.launchDarklySdkKey.length()> 0) {
-			System.out.println("Found LAUNCH_DARKLY_SDK_KEY: " + this.launchDarklySdkKey + " setting up LDClient");
+			logger.info("Found LAUNCH_DARKLY_SDK_KEY: " + this.launchDarklySdkKey + " setting up LDClient");
 			ldClient = new LDClient(launchDarklySdkKey);
 		}
 	}
@@ -136,7 +140,7 @@ public class CustomerController {
 
 	private ModelAndView getCustomerList(boolean responseTimeProblemEnabled) {
 
-		System.out.println("getCustomerList() - Response Time problem = " + responseTimeProblemEnabled);
+		logger.info("getCustomerList() - Response Time problem = " + responseTimeProblemEnabled);
 
 		if (responseTimeProblemEnabled) {
 			try
