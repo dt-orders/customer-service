@@ -23,6 +23,8 @@ import org.json.simple.parser.*;
 
 import java.io.IOException;
 import java.util.Iterator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ComponentScan
 @EnableAutoConfiguration
@@ -30,6 +32,7 @@ import java.util.Iterator;
 public class CustomerApp {
 
 	private final CustomerRepository customerRepository;
+	private static final Logger logger = LoggerFactory.getLogger(CustomerApp.class);
 
 	@Autowired
 	public CustomerApp(CustomerRepository customerRepository) {
@@ -38,12 +41,12 @@ public class CustomerApp {
 
 	@PostConstruct
 	public void generateTestData() {
-        CloseableHttpClient httpclient = HttpClients.createDefault();
+        CloseableHttpClient HttpClient = HttpClients.createDefault();
         try {
         	for (int it=0; it< 10; it++) {
-	            HttpGet httpget = new HttpGet("https://randomuser.me/api/?nat=us");
+	            HttpGet httpGet = new HttpGet("https://randomuser.me/api/?nat=us");
 	
-	            //System.out.println("Executing request " + httpget.getRequestLine());
+	            logger.debug("Executing request " + httpGet.getRequestLine());
 	
 	            // Create a custom response handler
 	            ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
@@ -58,16 +61,15 @@ public class CustomerApp {
 	                    } else {
 	                        // sometimes get unicode data for a customer that causes errors
 							//throw new ClientProtocolException("Unexpected response status: " + status);
-							System.out.println("Unexpected response status: " + status);
+							logger.error("Unexpected response status: " + status);
 							return null;
 	                    }
 	                }
 	
 	            };
 
-				String responseBody = httpclient.execute(httpget, responseHandler);
+				String responseBody = HttpClient.execute(httpGet, responseHandler);
 				if (responseBody != null) {
-					System.out.println("Adding customer: " + it);
 					JSONParser parser = new JSONParser();
 					JSONObject obj = (JSONObject) parser.parse(responseBody);
 					JSONArray result = (JSONArray) obj.get("results");
@@ -80,12 +82,12 @@ public class CustomerApp {
 						JSONObject address = (JSONObject) user.get("location");
 						String street = address.get("street").toString();
 						String city = address.get("city").toString();
-						System.out.println("fName: " + fName + " , lName: " +lName + " ,email: " + fName + "." + lName + "@gmail.com" + " ,street: " + street + " ,city:" + city);
+						logger.info("Adding test data customer fName: " + fName + " , lName: " +lName + " ,email: " + fName + "." + lName + "@gmail.com" + " ,street: " + street + " ,city:" + city);
 						customerRepository.save(new Customer(fName, lName, "aa@gmail.com", street, city));
 					}
 				}
 				else {
-					System.out.println("Skipping customer: " + it);
+					logger.debug("Skipping customer: " + it);
 				}
         	}
 		}
@@ -94,7 +96,7 @@ public class CustomerApp {
 		}
         finally {
         	try {
-        		httpclient.close();
+        		HttpClient.close();
         	}
         	catch (IOException e) {
         		e.printStackTrace();
