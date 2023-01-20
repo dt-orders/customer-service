@@ -18,7 +18,7 @@
 		<relativePath /> 
 	</parent>
 
-	<artifactId>microservice-kubernetes-demo-customer</artifactId>
+	<artifactId>dt-orders-customer-service</artifactId>
 
 	<build>
 		<plugins>
