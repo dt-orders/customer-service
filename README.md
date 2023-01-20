@@ -24,7 +24,14 @@ The images for this service has been build and published to Dockerhub.
 
   ```
   export LAUNCH_DARKLY_SDK_KEY=<YOUR KEY>
-  docker run -p 8080:8080 --env LAUNCH_DARKLY_SDK_KEY=$LAUNCH_DARKLY_SDK_KEY dtdemos/dt-orders-customer-service:2
+  docker run -p 8080:8080 --env LAUNCH_DARKLY_SDK_KEY=$LAUNCH_DARKLY_SDK_KEY dtdemos/dt-orders-customer-service:1
+  ```
+
+1. Here is an example of running version 1 with Rookout enabled
+
+  ```
+  export ROOKOUT_TOKEN=<YOUR TOKEN>
+  docker run -p 8080:8080 --env ROOKOUT_TOKEN=$ROOKOUT_TOKEN --env ROOKOUT_LIVE_LOGGER=True dtdemos/dt-orders-customer-service:1
   ```
 
 2. access application at ```http://localhost:8080```
@@ -53,26 +60,30 @@ The following programs to be installed
 
 ## Build and Run Locally
 
-1. Use the provided Unix shell script that will build one docker image and run it.  Optionally pass in the dockerhub repo name and version to run.
+Use the provided Unix shell script that will build one docker image and run it.  Optionally pass in the dockerhub repo name and version to run.
 
-    Just call: `./buildrun.sh`
-
-    For example, build and run version 1: `./buildrun.sh`
-
-2. access application at ```http://localhost:8080```
+* If using LaunchDarkly or Rookout, copy the `creds.template` file to `creds.json` and adjust the values.
+* To build, create image and run docker locally, call: `./buildrun.sh`
+* Access application at `http://localhost:8080/list.html`
 
 ## Build Docker Images and push images to a repository
 
 Use the provided Unix shell script that will build the docker image and publish it. There are three versions that will be built.  Optionally pass in the dockerhub repo name.
 
-Just call: `./buildpush.sh`
-
-For example: `./buildpush.sh`
+* To build, create image, and push to dockerhub, call: `./buildpush.sh`
 
 # LaunchDarkly Feature Flags
 
-This application has also been build with the [LaunchDarkly Java SDK](https://docs.launchdarkly.com/sdk/server-side/java).   This is to demo "in-place" changes to application.
+This application is built with the [LaunchDarkly Java SDK](https://docs.launchdarkly.com/sdk/server-side/java).   This is to demo "in-place" changes to application.
 
-If you don't need LaunchDarkly, then there is no impact - it will only be enabled if you setup the LaunchDarkly KEY set as a Docker environment variable. See `Run Docker Image` section below.  
+If you don't use LaunchDarkly, then there is no impact - it will only be enabled if you setup the LaunchDarkly SDK KEY set as a Docker environment variable. See `Run Docker Image` section above.  
 
 Be sure to setup the LaunchDarkly Dynatrace integration](https://docs.launchdarkly.com/integrations/dynatrace) as well to get LaunchDarkly changes pushed to Dynatrace.
+
+# Rookout Live Debugging
+
+This application is built with the [Rookout Java SDK](https://docs.rookout.com/docs/jvm-setup).
+
+If you don't use Rookout, then there is no impact - it will only be enabled if you setup the Rookout Token as a Docker environment variable. See `Run Docker Image` section above.  
+
+The Rookout JAR file is in `app/` folder and was downloaded using the command on the [Rookout Java SDK](https://docs.rookout.com/docs/jvm-setup) webpage.
