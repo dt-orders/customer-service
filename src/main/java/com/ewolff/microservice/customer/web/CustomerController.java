@@ -2,8 +2,10 @@ package com.ewolff.microservice.customer.web;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Map;
 import java.util.Random;
 import java.io.*;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,6 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import com.ewolff.microservice.customer.Customer;
 import com.ewolff.microservice.customer.CustomerRepository;
+
 import com.launchdarkly.sdk.LDUser;
 import com.launchdarkly.sdk.server.LDClient;
 
@@ -41,8 +44,7 @@ public class CustomerController {
 	private boolean launchDarklyNiceToHaveFeature1Flag = false;
 
 	private String getVersion() {
-		logger.info("INFO Current APP_VERSION: " + this.version);
-		logger.warn("WARN Current APP_VERSION: " + this.version);
+		logger.info("Current APP_VERSION: " + this.version);
 		return this.version;
 	}
 
@@ -59,21 +61,16 @@ public class CustomerController {
 		}
 	}
 
-	private void showLaunchDarklyFlags(LDClient ldClient, LDUser user){
-		logger.info("==========================================");
-		logger.info("showLaunchDarklyFlags");
-		logger.info("==========================================");
-		logger.info("launchDarklyNewFeature1Flag : \"%s\"\n", launchDarklyNewFeature1Flag);
-		logger.info("launchDarklyNiceToHaveFeature1Flag : \"%s\"\n", launchDarklyNiceToHaveFeature1Flag);
+	private void logLaunchDarklyFlags(LDClient ldClient, LDUser user){
+		logger.info("showLaunchDarklyFlags: launchDarklyNewFeature1Flag : \"%s\"\n", launchDarklyNewFeature1Flag);
+		logger.info("showLaunchDarklyFlags: launchDarklyNiceToHaveFeature1Flag : \"%s\"\n", launchDarklyNiceToHaveFeature1Flag);
 	}
 
 	private void logWheneverAnyFlagChanges(LDClient ldClient, LDUser user) {
 
 		ldClient.getFlagTracker().addFlagChangeListener(event -> {
 			String ldKey = event.getKey();
-			logger.info("==========================================");
 			logger.info("LaunchDarkly Flag \"%s\" has changed\n", ldKey);
-			logger.info("==========================================");
 
 			if (ldKey == LAUNCH_DARKLY_NEW_FEATURE_1_FLAG_KEY) {
 				launchDarklyNewFeature1Flag = ldClient.boolVariation(ldKey, user, false);
@@ -82,7 +79,7 @@ public class CustomerController {
 				launchDarklyNiceToHaveFeature1Flag = ldClient.boolVariation(ldKey, user, false);
 			}
 
-			this.showLaunchDarklyFlags(ldClient, user);
+			this.logLaunchDarklyFlags(ldClient, user);
 		});
 	}
 
@@ -101,7 +98,17 @@ public class CustomerController {
 		this.version = System.getenv("APP_VERSION");
 
 		// setup LaunchDarkly client if the key is set
-		this.launchDarklySdkKey = System.getenv("LAUNCH_DARKLY_SDK_KEY");
+		try {
+			Map<String, String> env = System.getenv();
+			if (!env.containsKey("LAUNCH_DARKLY_SDK_KEY")) {
+				logger.info("NULL value for LAUNCH_DARKLY_SDK_KEY");
+			}
+			else {
+				this.launchDarklySdkKey = env.get("LAUNCH_DARKLY_SDK_KEY");
+			}
+		} catch (SecurityException e) {
+			throw new AssertionError("Security policy doesn't allow access to system environment", e);
+		}
 
 		if (this.launchDarklySdkKey.length()> 0) {
 			logger.info("Found LAUNCH_DARKLY_SDK_KEY: " + this.launchDarklySdkKey + " setting up LDClient");
@@ -131,7 +138,7 @@ public class CustomerController {
 
 	@RequestMapping(value = "/{id}.html", method = RequestMethod.GET, produces = MediaType.TEXT_HTML_VALUE)
 	public ModelAndView customer(@PathVariable("id") long id) throws Exception {
-
+		logger.info("Getting customer detail for id = " + id);
 		if (this.getVersion().equals("3")) {
 			this.slowMeDown();
 		}
@@ -163,6 +170,8 @@ public class CustomerController {
 	@RequestMapping("/list.html")
 	public ModelAndView customerList(@RequestHeader(value = "x-test-user", required = false) String user) {
 
+		logger.info("Getting customer list");
+
 		// only do this logic if using launchDarkly
 		if (this.launchDarklySdkKey.length()> 0) {
 
@@ -175,7 +184,7 @@ public class CustomerController {
 			launchDarklyNiceToHaveFeature1Flag = ldClient.boolVariation(LAUNCH_DARKLY_NICE_TO_HAVE_FEATURE_1_FLAG_KEY, ldUser, false);
 
 			// show ldUser starting values
-			this.showLaunchDarklyFlags(ldClient, ldUser);
+			this.logLaunchDarklyFlags(ldClient, ldUser);
 			// register ldUser for dynamic flag changes
 			this.logWheneverAnyFlagChanges(ldClient, ldUser);
 		}
