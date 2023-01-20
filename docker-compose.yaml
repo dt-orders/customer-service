@@ -1,0 +1,9 @@
+version: '3'
+services:
+  customer-service:
+    image: dtdemos/dt-orders-customer-service:1
+    ports:
+      - 8080:8080
+    environment:
+      - ROOKOUT_TOKEN="${ROOKOUT_TOKEN}"
+      - ROOKOUT_LIVE_LOGGER="${ROOKOUT_LIVE_LOGGER}"
