@@ -50,6 +50,18 @@
 		</dependency>
 
 		<dependency>
+			<groupId>dev.openfeature</groupId>
+			<artifactId>sdk</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>dev.openfeature.contrib.providers</groupId>
+			<artifactId>flagd</artifactId>
+			<version>0.5.2</version>
+		</dependency>
+		
+		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
@@ -111,7 +123,7 @@
 		<dependency>
 			<groupId>org.webjars</groupId>
 			<artifactId>bootstrap</artifactId>
-			<version>3.3.6</version>
+			<version>5.2.3</version>
 		</dependency>
 
 		<dependency>
@@ -131,17 +143,11 @@
 			<version>1.1</version>
 		</dependency>
 
-		<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient -->
+		<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/http -->
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
 			<version>4.5.13</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.launchdarkly</groupId>
-			<artifactId>launchdarkly-java-server-sdk</artifactId>
-			<version>5.2.2</version>
 		</dependency>
 
 	</dependencies>
