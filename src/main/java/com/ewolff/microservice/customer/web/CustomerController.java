@@ -2,8 +2,6 @@ package com.ewolff.microservice.customer.web;
 
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Map;
-import java.util.Random;
 import java.io.*;
 
 import org.slf4j.Logger;
@@ -14,8 +12,8 @@ import javax.servlet.http.HttpServletRequest;
 import com.ewolff.microservice.customer.Customer;
 import com.ewolff.microservice.customer.CustomerRepository;
 
-import com.launchdarkly.sdk.LDUser;
-import com.launchdarkly.sdk.server.LDClient;
+import dev.openfeature.sdk.Client;
+import dev.openfeature.sdk.OpenFeatureAPI;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -35,13 +33,7 @@ public class CustomerController {
 	private static final Logger logger = LoggerFactory.getLogger(CustomerController.class);
 	private CustomerRepository customerRepository;
 	private String version;
-	private LDClient ldClient;
-	private String launchDarklySdkKey = "";
-
-	static final String LAUNCH_DARKLY_NEW_FEATURE_1_FLAG_KEY = "new-feature-1";
-	static final String LAUNCH_DARKLY_NICE_TO_HAVE_FEATURE_1_FLAG_KEY = "nice-to-have-feature-1";
-	private boolean launchDarklyNewFeature1Flag = false;
-	private boolean launchDarklyNiceToHaveFeature1Flag = false;
+	private final OpenFeatureAPI openFeatureAPI;
 
 	private String getVersion() {
 		logger.info("Current APP_VERSION: " + this.version);
@@ -50,70 +42,51 @@ public class CustomerController {
 
 	private void setVersion(String newVersion) {
 		this.version = newVersion;
-		logger.info("Setting APP_VERSION to: " + this.version);
+		logger.info("setVersion: Setting APP_VERSION to: " + this.version);
 	}
-	private void niceToHaveFeature1(boolean failureProblemEnabled) {
-		logger.info("Running niceToHaveFeature1");
-		if (failureProblemEnabled) {
+
+	private void throwServiceUnavailable(boolean isEnabled) {
+		logger.info("Running throwServiceUnavailable method");
+		if (isEnabled) {
 			throw new ResponseStatusException(
-				HttpStatus.SERVICE_UNAVAILABLE, "niceToHaveFeature1 returning service unavailable."
+				HttpStatus.SERVICE_UNAVAILABLE, "Returning service unavailable exception"
 			);
 		}
 	}
 
-	private void logLaunchDarklyFlags(LDClient ldClient, LDUser user){
-		logger.info("showLaunchDarklyFlags: launchDarklyNewFeature1Flag : \"%s\"\n", launchDarklyNewFeature1Flag);
-		logger.info("showLaunchDarklyFlags: launchDarklyNiceToHaveFeature1Flag : \"%s\"\n", launchDarklyNiceToHaveFeature1Flag);
+	private void throwException(boolean isEnabled)  {
+		logger.info("Running throwException method");
+		if (isEnabled) {
+			try {
+				throw new Exception("Throwing fake exception");
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
-	private void logWheneverAnyFlagChanges(LDClient ldClient, LDUser user) {
-
-		ldClient.getFlagTracker().addFlagChangeListener(event -> {
-			String ldKey = event.getKey();
-			logger.info("LaunchDarkly Flag \"%s\" has changed\n", ldKey);
-
-			if (ldKey == LAUNCH_DARKLY_NEW_FEATURE_1_FLAG_KEY) {
-				launchDarklyNewFeature1Flag = ldClient.boolVariation(ldKey, user, false);
+	private void slowMeDown(boolean isEnabled) { 
+		logger.info("Running slowMeDown method");
+		if (isEnabled) {
+			logger.info("slowMeDown: Doing a fake slowdown");
+			Integer sleepTime = Integer.valueOf(System.getenv("SLEEP_TIME"));
+			try {
+				Thread.sleep(sleepTime);
+			} catch(InterruptedException ex)
+			{
+			   Thread.currentThread().interrupt();
 			}
-			if (ldKey == LAUNCH_DARKLY_NICE_TO_HAVE_FEATURE_1_FLAG_KEY) {
-				launchDarklyNiceToHaveFeature1Flag = ldClient.boolVariation(ldKey, user, false);
-			}
-
-			this.logLaunchDarklyFlags(ldClient, user);
-		});
-	}
-
-	private void slowMeDown() throws InterruptedException {
-		logger.info("Doing a fake slowdown");
-		// ************************************************
-		// Response Time problem
-		// ************************************************
-		Integer sleepTime = Integer.valueOf(System.getenv("SLEEP_TIME"));
-		Thread.sleep(sleepTime);
+		}
+		else {
+			logger.info("slowMeDown: No need to slowdown");
+		}
 	}
 
 	@Autowired
-	public CustomerController(CustomerRepository customerRepository) {
+	public CustomerController(CustomerRepository customerRepository, OpenFeatureAPI OFApi) {
+		this.openFeatureAPI = OFApi;
 		this.customerRepository = customerRepository;
 		this.version = System.getenv("APP_VERSION");
-
-		// setup LaunchDarkly client if the key is set
-		try {
-			Map<String, String> env = System.getenv();
-			if (!env.containsKey("LAUNCH_DARKLY_SDK_KEY")) {
-				logger.info("NULL value for LAUNCH_DARKLY_SDK_KEY");
-			}
-			else {
-				this.launchDarklySdkKey = env.get("LAUNCH_DARKLY_SDK_KEY");
-			}
-		} catch (SecurityException e) {
-			throw new AssertionError("Security policy doesn't allow access to system environment", e);
-		}
-
-		if (this.launchDarklySdkKey.length()> 0) {
-			logger.info("Found LAUNCH_DARKLY_SDK_KEY: " + this.launchDarklySdkKey + " setting up LDClient");
-			ldClient = new LDClient(launchDarklySdkKey);
-		}
 	}
 	
 	@RequestMapping(value = "/manifest", method = RequestMethod.GET)
@@ -138,73 +111,45 @@ public class CustomerController {
 
 	@RequestMapping(value = "/{id}.html", method = RequestMethod.GET, produces = MediaType.TEXT_HTML_VALUE)
 	public ModelAndView customer(@PathVariable("id") long id) throws Exception {
+		final Client openFeatureClient = openFeatureAPI.getClient();
 		logger.info("Getting customer detail for id = " + id);
-		if (this.getVersion().equals("3")) {
-			this.slowMeDown();
+		if ((this.getVersion().equals("3")) || openFeatureClient.getBooleanValue("slowdown", false)) {
+			this.slowMeDown(true);
 		}
 		return new ModelAndView("customer", "customer", customerRepository.findById(id).get());
 	}
 
-	private ModelAndView getCustomerList(boolean responseTimeProblemEnabled) {
-
-		logger.info("getCustomerList() - Response Time problem = " + responseTimeProblemEnabled);
-
-		if (responseTimeProblemEnabled) {
-			try
-			{
-				slowMeDown();
-			}
-			catch(InterruptedException ex)
-			{
-			   Thread.currentThread().interrupt();
-			}
-			return new ModelAndView("customerlist", "customers",
-					customerRepository.findAll());
-		}
-		else {
-			return new ModelAndView("customerlist", "customers",
-					customerRepository.findAll());
-		}
-	}
-
 	@RequestMapping("/list.html")
 	public ModelAndView customerList(@RequestHeader(value = "x-test-user", required = false) String user) {
-
+		final Client openFeatureClient = openFeatureAPI.getClient();
 		logger.info("Getting customer list");
-
-		// only do this logic if using launchDarkly
-		if (this.launchDarklySdkKey.length()> 0) {
-
-			Random rand = new Random();
-			String randomUserId = Integer.toString(rand.nextInt(1000000) + 1);
-			LDUser ldUser = new LDUser.Builder(randomUserId).build();
-		
-			// get launchDarkly values for this user
-			launchDarklyNewFeature1Flag = ldClient.boolVariation(LAUNCH_DARKLY_NEW_FEATURE_1_FLAG_KEY, ldUser, false);
-			launchDarklyNiceToHaveFeature1Flag = ldClient.boolVariation(LAUNCH_DARKLY_NICE_TO_HAVE_FEATURE_1_FLAG_KEY, ldUser, false);
-
-			// show ldUser starting values
-			this.logLaunchDarklyFlags(ldClient, ldUser);
-			// register ldUser for dynamic flag changes
-			this.logWheneverAnyFlagChanges(ldClient, ldUser);
-		}
-
-		// call a separate function so we can profile easier
-		niceToHaveFeature1(launchDarklyNiceToHaveFeature1Flag);
-
-		// call a separate function so we can profile easier
-		if ((this.version.equals("2") || this.version.equals("3") || launchDarklyNewFeature1Flag)) {
-			return getCustomerList(true);
+		// Check if slow down
+		if ((this.version.equals("2")) || (this.version.equals("3")) || (openFeatureClient.getBooleanValue("slowdown", false))) {
+			slowMeDown(true);
 		}
 		else {
-			return getCustomerList(false);
+			slowMeDown(false);
 		}
+
+		// Check if throw exception
+		if ((this.version.equals("2")) || (openFeatureClient.getBooleanValue("exception", false))) {
+			throwException(true);
+		}
+
+		// Check if raise throw Service Unavailable
+		if ((this.version.equals("2")) || (openFeatureClient.getBooleanValue("service_unvailable", false))) {
+			throwServiceUnavailable(true);
+		}
+
+		// Return the list
+		return new ModelAndView("customerlist", "customers",
+					customerRepository.findAll());
 	}
 
 	@RequestMapping(value = "/form.html", method = RequestMethod.GET)
 	public ModelAndView add() throws InterruptedException {
 		if (this.getVersion().equals("3")) {
-			this.slowMeDown();
+			this.slowMeDown(true);
 		}
 		return new ModelAndView("customer", "customer", new Customer());
 	}
@@ -220,7 +165,7 @@ public class CustomerController {
 			HttpServletRequest httpRequest) throws InterruptedException {
 
 		if (this.getVersion().equals("3")) {
-			this.slowMeDown();
+			this.slowMeDown(true);
 		}
 		customer.setId(id);
 		customerRepository.save(customer);
@@ -231,7 +176,7 @@ public class CustomerController {
 	public ModelAndView delete(@PathVariable("id") long id) throws InterruptedException {
 
 		if (this.getVersion().equals("3")) {
-			this.slowMeDown();
+			this.slowMeDown(true);
 		}
 		
 		customerRepository.deleteById(id);
