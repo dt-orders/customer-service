@@ -13,14 +13,6 @@ then
     VERSION_TAG=1
 fi
 
-LAUNCH_DARKLY_SDK_KEY=$(cat creds.json | jq -r '.launch_darkly_sdk_key')
-if [ -z "$LAUNCH_DARKLY_SDK_KEY" ]
-then
-    echo "Running with NO LAUNCH_DARKLY_SDK_KEY.  If you want it, then set in your creds.json file."
-else
-    echo "Running with LAUNCH_DARKLY_SDK_KEY = $LAUNCH_DARKLY_SDK_KEY"
-fi
-
 ROOKOUT_SDK_KEY=$(cat creds.json | jq -r '.rookout_sdk_key')
 if [ -z "$ROOKOUT_SDK_KEY" ]
 then
@@ -63,7 +55,6 @@ echo "access app @ http://localhost:8080/list.html"
 echo "" 
 
 docker run -it -p 8080:8080 \
-    --env LAUNCH_DARKLY_SDK_KEY=$LAUNCH_DARKLY_SDK_KEY \
     --env ROOKOUT_TOKEN=$ROOKOUT_SDK_KEY \
     --env ROOKOUT_LIVE_LOGGER=$ROOKOUT_LIVE_LOGGER \
     $FULLIMAGE
