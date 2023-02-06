@@ -1,4 +1,6 @@
-FROM openjdk:11
+#FROM openjdk:11
+FROM sapmachine:19.0.2
+
 COPY target/MANIFEST .
 COPY target/*.jar .
 

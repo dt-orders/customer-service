@@ -16,6 +16,7 @@ import dev.openfeature.sdk.Client;
 import dev.openfeature.sdk.OpenFeatureAPI;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
