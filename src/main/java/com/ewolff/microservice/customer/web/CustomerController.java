@@ -12,9 +12,6 @@ import javax.servlet.http.HttpServletRequest;
 import com.ewolff.microservice.customer.Customer;
 import com.ewolff.microservice.customer.CustomerRepository;
 
-import dev.openfeature.sdk.Client;
-import dev.openfeature.sdk.OpenFeatureAPI;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -33,7 +30,6 @@ public class CustomerController {
 	private static final Logger logger = LoggerFactory.getLogger(CustomerController.class);
 	private CustomerRepository customerRepository;
 	private String version;
-	private final OpenFeatureAPI openFeatureAPI;
 
 	private String getVersion() {
 		logger.info("Current APP_VERSION: " + this.version);
@@ -83,8 +79,7 @@ public class CustomerController {
 	}
 
 	@Autowired
-	public CustomerController(CustomerRepository customerRepository, OpenFeatureAPI OFApi) {
-		this.openFeatureAPI = OFApi;
+	public CustomerController(CustomerRepository customerRepository) {
 		this.customerRepository = customerRepository;
 		this.version = System.getenv("APP_VERSION");
 	}
@@ -111,9 +106,8 @@ public class CustomerController {
 
 	@RequestMapping(value = "/{id}.html", method = RequestMethod.GET, produces = MediaType.TEXT_HTML_VALUE)
 	public ModelAndView customer(@PathVariable("id") long id) throws Exception {
-		final Client openFeatureClient = openFeatureAPI.getClient();
 		logger.info("Getting customer detail for id = " + id);
-		if ((this.getVersion().equals("3")) || openFeatureClient.getBooleanValue("slowdown", false)) {
+		if ((this.getVersion().equals("3"))) {
 			this.slowMeDown(true);
 		}
 		return new ModelAndView("customer", "customer", customerRepository.findById(id).get());
@@ -121,10 +115,9 @@ public class CustomerController {
 
 	@RequestMapping("/list.html")
 	public ModelAndView customerList(@RequestHeader(value = "x-test-user", required = false) String user) {
-		final Client openFeatureClient = openFeatureAPI.getClient();
 		logger.info("Getting customer list");
 		// Check if slow down
-		if ((this.version.equals("2")) || (this.version.equals("3")) || (openFeatureClient.getBooleanValue("slowdown", false))) {
+		if ((this.version.equals("2")) || (this.version.equals("3"))) {
 			slowMeDown(true);
 		}
 		else {
@@ -132,12 +125,12 @@ public class CustomerController {
 		}
 
 		// Check if throw exception
-		if ((this.version.equals("2")) || (openFeatureClient.getBooleanValue("exception", false))) {
+		if ((this.version.equals("2"))) {
 			throwException(true);
 		}
 
 		// Check if raise throw Service Unavailable
-		if ((this.version.equals("2")) || (openFeatureClient.getBooleanValue("service_unvailable", false))) {
+		if ((this.version.equals("2"))) {
 			throwServiceUnavailable(true);
 		}
 

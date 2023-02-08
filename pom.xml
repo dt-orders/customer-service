@@ -48,18 +48,6 @@
 		    <artifactId>javassist</artifactId>
 		    <version>3.25.0-GA</version>
 		</dependency>
-
-		<dependency>
-			<groupId>dev.openfeature</groupId>
-			<artifactId>sdk</artifactId>
-			<version>1.0.0</version>
-		</dependency>
-
-		<dependency>
-			<groupId>dev.openfeature.contrib.providers</groupId>
-			<artifactId>flagd</artifactId>
-			<version>0.5.2</version>
-		</dependency>
 		
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
