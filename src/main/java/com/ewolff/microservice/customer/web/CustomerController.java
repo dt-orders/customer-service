@@ -2,8 +2,11 @@ package com.ewolff.microservice.customer.web;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
+import java.util.Random;
 import java.io.*;
 
+import org.apache.commons.lang.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,36 +44,92 @@ public class CustomerController {
 		logger.info("setVersion: Setting APP_VERSION to: " + this.version);
 	}
 
+	private void checkForSlowDown() {
+		if (this.version.equals("3")) {
+			slowMeDown(true);
+		}
+	}
+
+	private void checkForAllProblemPatterns() {
+
+		// Check if slow down
+		if ((this.version.equals("2")) || (this.version.equals("3"))) {
+			slowMeDown(true);
+		}
+
+		// Check if throw exception
+		if ((this.version.equals("4"))) {
+			throwException(true);
+		}
+
+		// Check if raise throw Service Unavailable
+		if ((this.version.equals("5"))) {
+			throwServiceUnavailable(true);
+		}
+	}
+
 	private void throwServiceUnavailable(boolean isEnabled) {
 		logger.info("Running throwServiceUnavailable method");
+		
 		if (isEnabled) {
-			throw new ResponseStatusException(
-				HttpStatus.SERVICE_UNAVAILABLE, "Returning service unavailable exception"
-			);
+
+			Random rand = new Random();
+			// get random numbers
+			int randInt1 = rand.nextInt(2);
+			int randInt2 = rand.nextInt(2);
+			int randInt3 = randInt1 * randInt2;
+			logger.info("throwServiceUnavailable: randInt1: " + randInt1);
+			logger.info("throwServiceUnavailable: randInt2: " + randInt2);
+			logger.info("throwServiceUnavailable: randInt3: " + randInt3);
+
+			if (randInt3 == 0) {
+				logger.info("throwServiceUnavailable: Throwing SERVICE_UNAVAILABLE exception");
+				throw new ResponseStatusException(
+					HttpStatus.SERVICE_UNAVAILABLE, "Returning service unavailable exception"
+				);		
+			}
 		}
 	}
 
 	private void throwException(boolean isEnabled)  {
 		logger.info("Running throwException method");
 		if (isEnabled) {
-			try {
-				throw new Exception("Throwing fake exception");
-			} catch (Exception e) {
-				e.printStackTrace();
+			String generatedString = RandomStringUtils.randomAlphabetic(10);
+			logger.info("throwException: generatedString: " + generatedString);
+			if (generatedString != "IamAGoodValue") {
+				logger.info("throwException: Throwing INTERNAL_SERVER_ERROR exception");
+				throw new ResponseStatusException(
+					HttpStatus.INTERNAL_SERVER_ERROR, "Throwing fake exception"
+				);		
 			}
 		}
 	}
 
 	private void slowMeDown(boolean isEnabled) { 
 		logger.info("Running slowMeDown method");
+
 		if (isEnabled) {
 			logger.info("slowMeDown: Doing a fake slowdown");
-			Integer sleepTime = Integer.valueOf(System.getenv("SLEEP_TIME"));
-			try {
-				Thread.sleep(sleepTime);
-			} catch(InterruptedException ex)
+			long duration;
+
+			// GetRandom number between 0 and 1
+			Random rand = new Random();
+			int randInt = rand.nextInt(2);
+			if (randInt == 0) {
+				// get the default value 
+				duration = Long.valueOf(System.getenv("SLEEP_TIME"));
+			}
+			else
 			{
-			   Thread.currentThread().interrupt();
+				// make it s fixed value
+				duration = 3000;
+			}
+			logger.info("slowMeDown: randInt: " + randInt);
+			logger.info("slowMeDown: duration: " + duration);
+
+			long endTime = System.nanoTime() + TimeUnit.NANOSECONDS.convert(duration, TimeUnit.MILLISECONDS);
+			while ( System.nanoTime() < endTime ){
+				// wait for end time to occur
 			}
 		}
 		else {
@@ -107,43 +166,22 @@ public class CustomerController {
 	@RequestMapping(value = "/{id}.html", method = RequestMethod.GET, produces = MediaType.TEXT_HTML_VALUE)
 	public ModelAndView customer(@PathVariable("id") long id) throws Exception {
 		logger.info("Getting customer detail for id = " + id);
-		if ((this.getVersion().equals("3"))) {
-			this.slowMeDown(true);
-		}
+		checkForSlowDown();
 		return new ModelAndView("customer", "customer", customerRepository.findById(id).get());
 	}
 
 	@RequestMapping("/list.html")
 	public ModelAndView customerList(@RequestHeader(value = "x-test-user", required = false) String user) {
 		logger.info("Getting customer list");
-		// Check if slow down
-		if ((this.version.equals("2")) || (this.version.equals("3"))) {
-			slowMeDown(true);
-		}
-		else {
-			slowMeDown(false);
-		}
-
-		// Check if throw exception
-		if ((this.version.equals("2"))) {
-			throwException(true);
-		}
-
-		// Check if raise throw Service Unavailable
-		if ((this.version.equals("2"))) {
-			throwServiceUnavailable(true);
-		}
-
 		// Return the list
+		checkForAllProblemPatterns();
 		return new ModelAndView("customerlist", "customers",
 					customerRepository.findAll());
 	}
 
 	@RequestMapping(value = "/form.html", method = RequestMethod.GET)
 	public ModelAndView add() throws InterruptedException {
-		if (this.getVersion().equals("3")) {
-			this.slowMeDown(true);
-		}
+		checkForSlowDown();
 		return new ModelAndView("customer", "customer", new Customer());
 	}
 
@@ -157,9 +195,7 @@ public class CustomerController {
 	public ModelAndView put(@PathVariable("id") long id, Customer customer,
 			HttpServletRequest httpRequest) throws InterruptedException {
 
-		if (this.getVersion().equals("3")) {
-			this.slowMeDown(true);
-		}
+		checkForSlowDown();
 		customer.setId(id);
 		customerRepository.save(customer);
 		return new ModelAndView("success");
@@ -168,10 +204,7 @@ public class CustomerController {
 	@RequestMapping(value = "/{id}.html", method = RequestMethod.DELETE)
 	public ModelAndView delete(@PathVariable("id") long id) throws InterruptedException {
 
-		if (this.getVersion().equals("3")) {
-			this.slowMeDown(true);
-		}
-		
+		checkForSlowDown();
 		customerRepository.deleteById(id);
 		return new ModelAndView("success");
 	}
