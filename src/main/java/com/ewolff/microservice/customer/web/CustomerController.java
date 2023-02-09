@@ -68,9 +68,7 @@ public class CustomerController {
 		}
 	}
 
-	private void throwServiceUnavailable(boolean isEnabled) {
-		logger.info("Running throwServiceUnavailable method");
-		
+	private void throwServiceUnavailable(boolean isEnabled) {		
 		if (isEnabled) {
 
 			Random rand = new Random();
@@ -78,12 +76,9 @@ public class CustomerController {
 			int randInt1 = rand.nextInt(2);
 			int randInt2 = rand.nextInt(2);
 			int randInt3 = randInt1 * randInt2;
-			logger.info("throwServiceUnavailable: randInt1: " + randInt1);
-			logger.info("throwServiceUnavailable: randInt2: " + randInt2);
-			logger.info("throwServiceUnavailable: randInt3: " + randInt3);
 
 			if (randInt3 == 0) {
-				logger.info("throwServiceUnavailable: Throwing SERVICE_UNAVAILABLE exception");
+				logger.error("throwServiceUnavailable: Throwing SERVICE_UNAVAILABLE exception");
 				throw new ResponseStatusException(
 					HttpStatus.SERVICE_UNAVAILABLE, "Returning service unavailable exception"
 				);		
@@ -92,12 +87,10 @@ public class CustomerController {
 	}
 
 	private void throwException(boolean isEnabled)  {
-		logger.info("Running throwException method");
 		if (isEnabled) {
 			String generatedString = RandomStringUtils.randomAlphabetic(10);
-			logger.info("throwException: generatedString: " + generatedString);
 			if (generatedString != "IamAGoodValue") {
-				logger.info("throwException: Throwing INTERNAL_SERVER_ERROR exception");
+				logger.error("throwException: Throwing INTERNAL_SERVER_ERROR exception");
 				throw new ResponseStatusException(
 					HttpStatus.INTERNAL_SERVER_ERROR, "Throwing fake exception"
 				);		
@@ -106,10 +99,7 @@ public class CustomerController {
 	}
 
 	private void slowMeDown(boolean isEnabled) { 
-		logger.info("Running slowMeDown method");
-
 		if (isEnabled) {
-			logger.info("slowMeDown: Doing a fake slowdown");
 			long duration;
 
 			// GetRandom number between 0 and 1
@@ -124,13 +114,12 @@ public class CustomerController {
 				// make it s fixed value
 				duration = 3000;
 			}
-			logger.info("slowMeDown: randInt: " + randInt);
-			logger.info("slowMeDown: duration: " + duration);
-
 			long endTime = System.nanoTime() + TimeUnit.NANOSECONDS.convert(duration, TimeUnit.MILLISECONDS);
+			logger.info("slowMeDown: Doing a fake slowdown");
 			while ( System.nanoTime() < endTime ){
 				// wait for end time to occur
 			}
+			logger.info("slowMeDown: Done with fake slowdown");
 		}
 		else {
 			logger.info("slowMeDown: No need to slowdown");
@@ -165,14 +154,12 @@ public class CustomerController {
 
 	@RequestMapping(value = "/{id}.html", method = RequestMethod.GET, produces = MediaType.TEXT_HTML_VALUE)
 	public ModelAndView customer(@PathVariable("id") long id) throws Exception {
-		logger.info("Getting customer detail for id = " + id);
 		checkForSlowDown();
 		return new ModelAndView("customer", "customer", customerRepository.findById(id).get());
 	}
 
 	@RequestMapping("/list.html")
 	public ModelAndView customerList(@RequestHeader(value = "x-test-user", required = false) String user) {
-		logger.info("Getting customer list");
 		// Return the list
 		checkForAllProblemPatterns();
 		return new ModelAndView("customerlist", "customers",
