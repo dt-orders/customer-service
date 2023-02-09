@@ -9,6 +9,8 @@ The intent of this demo is to have versions of the application with normal and b
 | customer-service | 1 | Normal behavior |
 | customer-service | 2 | High Response time for /customer/list.html |
 | customer-service | 3 | High Response time for all requests |
+| customer-service | 4 | INTERNAL_SERVER_ERROR (HTTP 500) for /customer/list.html |
+| customer-service | 5 | SERVICE_UNAVAILABLE (HTTP 503) for /customer/list.html | 
 
 # Run Docker Image
 
